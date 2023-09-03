@@ -17,10 +17,11 @@ library(dplyr)
 library(MASS)
 
 
-
+# load data 
 load("/Users/hereagain/JHU/RA_JHU/COVID19ITS/Updated_data/anova_msm.RData")
 load("/Users/hereagain/JHU/RA_JHU/COVID19ITS/Updated_data/wrhi_fsw.RData")
 
+# Newey adjustment to regression 
 Newey_result <- function(model1){
   est <- exp(c(coef(model1)["High"],coef(model1)["Low"],coef(model1)["time"],coef(model1)["High:inter1"]+coef(model1)["time"], coef(model1)["Low:inter2"]+coef(model1)["time"] ))
   # For adjusted 
@@ -30,10 +31,11 @@ Newey_result <- function(model1){
   # se4 <- sqrt(diag(NeweyWest(model1, prewhite = F, lag = 3)))["High:inter1"]
   #se5 <- sqrt(diag(NeweyWest(model1, prewhite = F, lag = 3)))["Low:inter2"]
   se3 <- sqrt(diag(NeweyWest(model1, prewhite = F, lag = 3)))["time"]
-  
+  # lower 95%CI
   lb <- round(est[c(1:3)] * exp(-1.96 * c(se1, se2, se3)),2)
   trend_lb <- as.numeric(c(lincom(model = model1,c("time + High:inter1"),eform = T)[2],lincom(model = model1,c("time + Low:inter2"),eform = T)[2]))
   lb<- round(c(lb,trend_lb),2)
+  # upper 95% CI
   ub <- est [c(1:3)]* exp(1.96 * c(se1, se2, se3))
   trend_ub <- as.numeric(c(lincom(model = model1,c("time + High:inter1"),eform = T)[3],lincom(model = model1,c("time + Low:inter2"),eform = T)[3]))
   ub<- round(c(ub,trend_ub),2)
@@ -104,6 +106,7 @@ unadjusted_result=rbind(msm_re1,fsw_re1)
 adjusted_result = rbind(msm_seas,fsw_seas)
 
 
+# export to a result table 
 library(xlsx)
 
 write.xlsx(unadjusted_result, "/Users/hereagain/JHU/RA_JHU/COVID19ITS/USAID_NWadjuested_Summary_330_v3.xlsx", sheetName = "Unadjusted", 
